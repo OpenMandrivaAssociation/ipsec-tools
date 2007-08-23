@@ -19,6 +19,9 @@ Patch0: ipsec-tools-0.6.2b2-x86_64.patch
 Patch1: ipsec-tools-0.6.2b3-manfix.patch
 Patch2: ipsec-tools-0.5.2-includes.patch
 Patch3: ipsec-tools-0.6.6-gcc-misc.patch
+# (tv) fix build by disabling -Werror which make build randomly fails for no
+# good reason when newer gcc spit out more warnings:
+Patch4: ipsec-tools-disable-Werror.patch
 BuildRequires: openssl-devel krb5-devel flex bison
 BuildRequires: libpam-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
@@ -73,6 +76,7 @@ These are development headers for libipsec
 %patch1 -p1 -b .manfix
 %patch2 -p1 -b .includes
 %patch3 -p1 -b .gcc41
+%patch4 -p1 -b .err
 
 %build
 ./configure  \
