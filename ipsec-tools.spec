@@ -41,9 +41,9 @@ This package builds:
 %package -n %{libname}
 Summary: The shared libraries used by ipsec-tools
 Group: System/Libraries
-Requires(post): grep, sh-utils
-Requires(preun): grep, sh-utils
-Requires: grep, sh-utils
+Requires(post): grep, coreutils
+Requires(preun): grep, coreutils
+Requires: grep, coreutils
 Provides: libipsec = %{version}-%{release}
 Provides: libipsec-tools = %{version}-%{release}
 Obsoletes: libipsec-tools
