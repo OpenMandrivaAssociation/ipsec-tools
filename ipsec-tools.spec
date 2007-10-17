@@ -1,9 +1,9 @@
 %define LIBMAJ 0
 %define libname %mklibname ipsec %LIBMAJ
-%define libnamedev %{libname}-devel
+%define libnamedev %mklibname -d ipsec
 
 Name: ipsec-tools
-Version: 0.6.7
+Version: 0.7
 Release: %mkrel 1
 Summary: Tools for configuring and using IPSEC
 License: BSD
@@ -15,13 +15,8 @@ Source4: psk.txt
 Source6: ipsec-setkey-initscript
 Source7: racoon-initscript
 Source8: racoon.sysconfig
-Patch0: ipsec-tools-0.6.2b2-x86_64.patch
-Patch1: ipsec-tools-0.6.2b3-manfix.patch
-Patch2: ipsec-tools-0.5.2-includes.patch
-Patch3: ipsec-tools-0.6.6-gcc-misc.patch
-# (tv) fix build by disabling -Werror which make build randomly fails for no
-# good reason when newer gcc spit out more warnings:
-Patch4: ipsec-tools-disable-Werror.patch
+Patch: ipsec-tools-0.6.2b3-manfix.patch
+Patch1: ipsec-tools-0.5.2-includes.patch
 BuildRequires: openssl-devel krb5-devel flex bison
 BuildRequires: libpam-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
@@ -40,6 +35,7 @@ This package builds:
 	- racoon, an IKEv1 keying daemon
 
 %define old_libname %mklibname ipsec-tools 0
+%define old_libname_devel %mklibname -d ipsec 0
 
 %package -n %{libname}
 Summary: The shared libraries used by ipsec-tools
@@ -65,6 +61,7 @@ Provides: libipsec-devel = %{version}-%{release}
 Obsoletes: libipsec-tools-devel 
 Provides: %{old_libname}-devel = %{version}-%{release}
 Obsoletes: %{old_libname}-devel
+Obsoletes: %{old_libname_devel} < 0.7
 
 
 %description -n %{libnamedev}
@@ -72,11 +69,8 @@ These are development headers for libipsec
 
 %prep
 %setup -q
-%patch0 -p1 -b .x86_64
-%patch1 -p1 -b .manfix
-%patch2 -p1 -b .includes
-%patch3 -p1 -b .gcc41
-%patch4 -p1 -b .err
+%patch0 -p1 -b .manfix
+%patch1 -p1 -b .includes
 
 %build
 ./configure  \
@@ -95,7 +89,8 @@ These are development headers for libipsec
 	--enable-adminport \
 	--enable-gssapi \
 	--enable-natt \
-	--with-libpam
+	--with-libpam \
+        --enable-security-context=no
 
 # removed: 0.6.1 says it's not supported in linux
 # --enable-samode-unspec
