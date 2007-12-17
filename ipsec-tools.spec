@@ -19,7 +19,6 @@ Patch: ipsec-tools-0.6.2b3-manfix.patch
 Patch1: ipsec-tools-0.5.2-includes.patch
 BuildRequires: openssl-devel krb5-devel flex bison
 BuildRequires: libpam-devel
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 Requires: %{libname} = %{version}
 Requires(pre): rpm-helper
 Requires: rpm-helper
