@@ -78,7 +78,7 @@ These are development headers for libipsec
 	--mandir=%{_mandir} \
 	--libdir=/%{_lib} \
 	--sbindir=/sbin \
-	--localstatedir=%{_localstatedir} \
+	--localstatedir=%{_localstatedir}/lib \
 	--sysconfdir=%{_sysconfdir}/racoon \
 	--with-kernel-headers=%{_includedir} \
 	--enable-shared \
