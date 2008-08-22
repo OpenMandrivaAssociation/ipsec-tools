@@ -3,8 +3,8 @@
 %define libnamedev %mklibname -d ipsec
 
 Name: ipsec-tools
-Version: 0.7
-Release: %mkrel 2
+Version: 0.7.1
+Release: %mkrel 1
 Summary: Tools for configuring and using IPSEC
 License: BSD
 Group: Networking/Other
