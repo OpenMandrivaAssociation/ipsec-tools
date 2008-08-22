@@ -17,6 +17,8 @@ Source7: racoon-initscript
 Source8: racoon.sysconfig
 Patch: ipsec-tools-0.6.2b3-manfix.patch
 Patch1: ipsec-tools-0.5.2-includes.patch
+# fhimpe: from upstream CVS: http://marc.info/?l=oss-security&m=121856223016913&w=2
+Patch2: ipsec-tools-0.7.1-CVE-2008-3652.patch
 BuildRequires: openssl-devel krb5-devel flex bison
 BuildRequires: libpam-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
@@ -71,6 +73,7 @@ These are development headers for libipsec
 %setup -q
 %patch0 -p1 -b .manfix
 %patch1 -p1 -b .includes
+%patch2 -p4 -b .CVE-2008-3652
 
 %build
 ./configure  \
