@@ -1,9 +1,10 @@
+%define _disable_ld_no_undefined 1
 %define LIBMAJ 0
 %define libname %mklibname ipsec %LIBMAJ
 %define libnamedev %mklibname -d ipsec
 
 Name: ipsec-tools
-Version: 0.7.1
+Version: 0.7.2
 Release: %mkrel 1
 Summary: Tools for configuring and using IPSEC
 License: BSD
@@ -15,10 +16,18 @@ Source4: psk.txt
 Source6: ipsec-setkey-initscript
 Source7: racoon-initscript
 Source8: racoon.sysconfig
-Patch: ipsec-tools-0.6.2b3-manfix.patch
+Patch0: ipsec-tools-0.6.2b3-manfix.patch
 Patch1: ipsec-tools-0.5.2-includes.patch
-# fhimpe: from upstream CVS: http://marc.info/?l=oss-security&m=121856223016913&w=2
-Patch2: ipsec-tools-0.7.1-CVE-2008-3652.patch
+# Fedora patches
+Patch103: ipsec-tools-0.7-acquires.patch
+Patch104: ipsec-tools-0.7.1-loopback.patch
+# the following patches were also submitted upstream:
+Patch105: ipsec-tools-0.7-iface.patch
+Patch106: ipsec-tools-0.7-dupsplit.patch
+Patch109: ipsec-tools-0.7-splitcidr.patch
+Patch110: ipsec-tools-0.7.2-natt-linux.patch
+Patch111: ipsec-tools-0.7.1-pie.patch
+Patch113: ipsec-tools-0.7.1-dpd-fixes.patch
 BuildRequires: openssl-devel krb5-devel flex bison
 BuildRequires: libpam-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
@@ -73,10 +82,22 @@ These are development headers for libipsec
 %setup -q
 %patch0 -p1 -b .manfix
 %patch1 -p1 -b .includes
-%patch2 -p4 -b .CVE-2008-3652
+
+%patch103 -p1 -b .acquires
+%patch104 -p1 -b .loopback
+%patch105 -p1 -b .iface
+%patch106 -p1 -b .dupsplit
+%patch109 -p1 -b .splitcidr
+%patch110 -p1 -b .natt-linux
+%patch111 -p1 -b .pie
+%patch113 -p1 -b .dpd-fixes
+
+sed -i 's|-Werror||g' configure*
+
 
 %build
-./configure  \
+./bootstrap
+%configure2_5x  \
 	--prefix=%{_prefix} \
 	--mandir=%{_mandir} \
 	--libdir=/%{_lib} \
@@ -93,11 +114,8 @@ These are development headers for libipsec
 	--enable-gssapi \
 	--enable-natt \
 	--with-libpam \
-        --enable-security-context=no
-
-# removed: 0.6.1 says it's not supported in linux
-# --enable-samode-unspec
-
+	--enable-security-context=no \
+	--disable-audit
 make
 
 %install
