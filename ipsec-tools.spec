@@ -1,11 +1,10 @@
-%define _disable_ld_no_undefined 1
 %define LIBMAJ 0
 %define libname %mklibname ipsec %LIBMAJ
 %define libnamedev %mklibname -d ipsec
 
 Name: ipsec-tools
 Version: 0.7.3
-Release: %mkrel 2
+Release: %mkrel 3
 Summary: Tools for configuring and using IPSEC
 License: BSD
 Group: Networking/Other
@@ -19,6 +18,7 @@ Source8: racoon.sysconfig
 Patch0: ipsec-tools-0.6.2b3-manfix.patch
 Patch1: ipsec-tools-0.5.2-includes.patch
 Patch2: ipsec-tools-0.7.3-install.patch
+Patch3: ipsec-tools-0.7.3-link.patch
 # Fedora patches
 Patch103: ipsec-tools-0.7-acquires.patch
 Patch104: ipsec-tools-0.7.1-loopback.patch
@@ -84,7 +84,7 @@ These are development headers for libipsec
 %patch0 -p1 -b .manfix
 %patch1 -p1 -b .includes
 %patch2 -p1 -b .install
-
+%patch3 -p0 -b .link
 %patch103 -p1 -b .acquires
 %patch104 -p1 -b .loopback
 %patch105 -p1 -b .iface
