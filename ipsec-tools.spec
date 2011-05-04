@@ -4,7 +4,7 @@
 
 Name: ipsec-tools
 Version: 0.7.3
-Release: %mkrel 4
+Release: %mkrel 5
 Summary: Tools for configuring and using IPSEC
 License: BSD
 Group: Networking/Other
