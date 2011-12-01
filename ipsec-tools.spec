@@ -123,18 +123,18 @@ sed -i 's|-Werror||g' configure*
 make
 
 %install
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
 %makeinstall_std
 
-mkdir -p $RPM_BUILD_ROOT/etc/racoon/
+mkdir -p %{buildroot}/etc/racoon/
 
-install -m 0600 %{SOURCE3} $RPM_BUILD_ROOT/etc/racoon/racoon.conf
-install -m 0600 %{SOURCE4} $RPM_BUILD_ROOT/etc/racoon/psk.txt
-mkdir -m 0700 -p $RPM_BUILD_ROOT/etc/racoon/certs
+install -m 0600 %{SOURCE3} %{buildroot}/etc/racoon/racoon.conf
+install -m 0600 %{SOURCE4} %{buildroot}/etc/racoon/psk.txt
+mkdir -m 0700 -p %{buildroot}/etc/racoon/certs
 
-mkdir -p $RPM_BUILD_ROOT/%{_initrddir}
-install -m 0755 %{SOURCE6} $RPM_BUILD_ROOT/%{_initrddir}/ipsec-setkey
-install -m 0755 %{SOURCE7} $RPM_BUILD_ROOT/%{_initrddir}/racoon
+mkdir -p %{buildroot}/%{_initrddir}
+install -m 0755 %{SOURCE6} %{buildroot}/%{_initrddir}/ipsec-setkey
+install -m 0755 %{SOURCE7} %{buildroot}/%{_initrddir}/racoon
 
 mkdir -p %{buildroot}%{_sysconfdir}/sysconfig
 # racoon.sysconfig
@@ -185,7 +185,7 @@ rm -f src/racoon/samples/*.in
 find src/racoon/samples -type f -exec chmod 0644 {} \;
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
 
 %post
 %_post_service ipsec-setkey
