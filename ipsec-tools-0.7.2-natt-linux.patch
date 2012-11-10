@@ -1,0 +1,94 @@
+diff -up ipsec-tools-0.7.2/src/racoon/isakmp_inf.c.natt-linux ipsec-tools-0.7.2/src/racoon/isakmp_inf.c
+--- ipsec-tools-0.7.2/src/racoon/isakmp_inf.c.natt-linux	2009-04-20 15:35:36.000000000 +0200
++++ ipsec-tools-0.7.2/src/racoon/isakmp_inf.c	2009-04-23 14:46:55.000000000 +0200
+@@ -1144,7 +1144,6 @@ purge_ipsec_spi(dst0, proto, spi, n)
+ 	caddr_t mhp[SADB_EXT_MAX + 1];
+ #ifdef ENABLE_NATT
+ 	struct sadb_x_nat_t_type *natt_type;
+-	struct sadb_x_nat_t_port *natt_port;
+ #endif
+ 
+ 	plog(LLV_DEBUG2, LOCATION, NULL,
+@@ -1200,17 +1199,8 @@ purge_ipsec_spi(dst0, proto, spi, n)
+ 		}
+ #ifdef ENABLE_NATT
+ 		natt_type = (void *)mhp[SADB_X_EXT_NAT_T_TYPE];
+-		if (natt_type && natt_type->sadb_x_nat_t_type_type) {
+-			/* NAT-T is enabled for this SADB entry; copy
+-			 * the ports from NAT-T extensions */
+-			natt_port = (void *)mhp[SADB_X_EXT_NAT_T_SPORT];
+-			if (extract_port(src) == 0 && natt_port != NULL)
+-				set_port(src, ntohs(natt_port->sadb_x_nat_t_port_port));
+-
+-			natt_port = (void *)mhp[SADB_X_EXT_NAT_T_DPORT];
+-			if (extract_port(dst) == 0 && natt_port != NULL)
+-				set_port(dst, ntohs(natt_port->sadb_x_nat_t_port_port));
+-		}else{
++		if (natt_type == NULL ||
++			! natt_type->sadb_x_nat_t_type_type) {
+ 			/* Force default UDP ports, so CMPSADDR will match SAs with NO encapsulation
+ 			 */
+ 			set_port(src, PORT_ISAKMP);
+diff -up ipsec-tools-0.7.2/src/racoon/pfkey.c.natt-linux ipsec-tools-0.7.2/src/racoon/pfkey.c
+--- ipsec-tools-0.7.2/src/racoon/pfkey.c.natt-linux	2009-04-23 14:40:08.000000000 +0200
++++ ipsec-tools-0.7.2/src/racoon/pfkey.c	2009-04-23 14:40:08.000000000 +0200
+@@ -290,6 +290,13 @@ pfkey_dump_sadb(satype)
+ 	struct sadb_msg *msg = NULL;
+ 	size_t bl, ml;
+ 	int len;
++#if defined(__linux__) && defined(ENABLE_NATT)
++	caddr_t mhp[SADB_EXT_MAX + 1];
++	struct sadb_sa *sa;
++	struct sockaddr *src, *dst;
++	struct sadb_x_nat_t_type *natt_type;
++	struct sadb_x_nat_t_port *natt_port;
++#endif
+ 
+ 	if ((s = privsep_pfkey_open()) < 0) {
+ 		plog(LLV_ERROR, LOCATION, NULL,
+@@ -325,6 +332,45 @@ pfkey_dump_sadb(satype)
+ 		    continue;
+ 		}
+ 		
++#if defined(__linux__) && defined(ENABLE_NATT)
++		/*
++		 * NetBSD returns the NAT-T ports in the src and dst sockaddrs
++		 * in addition to the SADB_X_EXT_NAT_T_*PORT structs.
++		 *
++		 * Linux only returns them in the SADB_X_EXT_NAT_T_*PORT
++		 * structs. The racoon codebase is making the assumption that
++		 * the NAT-T ports are reflected by the ports in the src and
++		 * dst sockaddrs. We stick that information into those structs
++		 * here to meet the assumptions elsewhere.
++		 */
++		if (pfkey_align(msg, mhp) || pfkey_check(mhp)) {
++		    plog(LLV_ERROR, LOCATION, NULL,
++			"pfkey_check (%s)\n", ipsec_strerror());
++		    goto no_fixup;
++		}
++
++		sa = (struct sadb_sa *)(mhp[SADB_EXT_SA]);
++		if (!sa || !mhp[SADB_EXT_ADDRESS_SRC] || !mhp[SADB_EXT_ADDRESS_DST]) {
++		    goto no_fixup;
++		}
++
++		src = PFKEY_ADDR_SADDR(mhp[SADB_EXT_ADDRESS_SRC]);
++		dst = PFKEY_ADDR_SADDR(mhp[SADB_EXT_ADDRESS_DST]);
++
++		natt_type = (struct sadb_x_nat_t_type *)(mhp[SADB_X_EXT_NAT_T_TYPE]);
++
++		if (natt_type && natt_type->sadb_x_nat_t_type_type) {
++		    /* set the src and dst ports */
++		    natt_port = (struct sadb_x_nat_t_port *)(mhp[SADB_X_EXT_NAT_T_SPORT]);
++		    if (natt_port != NULL && extract_port(src) == 0)
++			set_port(src, ntohs(natt_port->sadb_x_nat_t_port_port));
++
++		    natt_port = (void *)mhp[SADB_X_EXT_NAT_T_DPORT];
++		    if (natt_port != NULL && extract_port(dst) == 0)
++			set_port(dst, ntohs(natt_port->sadb_x_nat_t_port_port));
++		}
++no_fixup:
++#endif /* __linux__ && ENABLE_NATT */
+ 
+ 		ml = msg->sadb_msg_len << 3;
+ 		bl = buf ? buf->l : 0;

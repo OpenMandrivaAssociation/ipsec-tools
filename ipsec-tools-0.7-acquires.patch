@@ -1,0 +1,108 @@
+--- ipsec-tools-0.7/src/racoon/handler.h.acquires	2007-08-28 22:18:35.000000000 -0500
++++ ipsec-tools-0.7/src/racoon/handler.h	2007-08-28 22:19:57.000000000 -0500
+@@ -284,6 +284,8 @@
+ 
+ 	u_int8_t flags;			/* Flags for phase 2 */
+ 	u_int32_t msgid;		/* msgid for phase 2 */
++  
++	u_int32_t sa_count;             /* num of SAs sent in SADB_ADD */
+ 
+ 	struct sainfo *sainfo;		/* place holder of sainfo */
+ 	struct saprop *proposal;	/* SA(s) proposal. */
+--- ipsec-tools-0.7/src/racoon/pfkey.c.acquires	2007-08-01 06:52:21.000000000 -0500
++++ ipsec-tools-0.7/src/racoon/pfkey.c	2007-08-28 22:08:22.000000000 -0500
+@@ -1265,7 +1265,9 @@
+ 	SCHED_KILL(iph2->sce);
+ 	
+ 	/* update status */
+-	iph2->status = PHASE2ST_ESTABLISHED;
++	/* Do this in pk_recvadd
++	 * iph2->status = PHASE2ST_ESTABLISHED;
++	 */
+ 
+ #ifdef ENABLE_STATS
+ 	gettimeofday(&iph2->end, NULL);
+@@ -1311,6 +1313,7 @@
+ 	struct saproto *pr;
+ 	int proxy = 0;
+ 	struct pfkey_send_sa_args sa_args;
++	u_int32_t sa_sent = 0;
+ 
+ 	/* sanity check */
+ 	if (iph2->approval == NULL) {
+@@ -1427,6 +1430,9 @@
+ 			return -1;
+ 		}
+ 
++		/* keep count of SAs added */
++		sa_sent++;
++
+ 		if (!lcconf->pathinfo[LC_PATHTYPE_BACKUPSA])
+ 			continue;
+ 
+@@ -1447,6 +1453,7 @@
+ 			sadbsecas2str(sa_args.src, sa_args.dst,
+ 			sa_args.satype, sa_args.spi, sa_args.mode));
+ 	}
++	iph2->sa_count = sa_sent;
+ 	return 0;
+ }
+ 
+@@ -1502,10 +1509,20 @@
+ 	}
+ 
+ 	/*
+-	 * NOTE don't update any status of phase2 handle
+-	 * because they must be updated by SADB_UPDATE message
++	 * Thus, update the status of phase 2 handle after all SADB_ADD
++	 * msgs have been received for the handle, rather than
++	 * after SADB_UPDATE.
++	 *
++	 * This also removes the possibilty of processing an ACQUIRE
++	 * received by kernel for SAs we are still adding.
+ 	 */
+ 
++	if (iph2->sa_count) {
++	  iph2->sa_count = iph2->sa_count - 1;
++	  if (iph2->sa_count == 0)
++	    iph2->status = PHASE2ST_ESTABLISHED;
++	}
++
+ 	plog(LLV_INFO, LOCATION, NULL,
+ 		"IPsec-SA established: %s\n",
+ 		sadbsecas2str(iph2->src, iph2->dst,
+@@ -1589,8 +1606,6 @@
+ 	/* turn off the timer for calling isakmp_ph2expire() */ 
+ 	SCHED_KILL(iph2->sce);
+ 
+-	iph2->status = PHASE2ST_EXPIRED;
+-
+ 	/* INITIATOR, begin phase 2 exchange. */
+ 	/* allocate buffer for status management of pfkey message */
+ 	if (iph2->side == INITIATOR) {
+@@ -1618,6 +1633,7 @@
+ 	/* If not received SADB_EXPIRE, INITIATOR delete ph2handle. */
+ 	/* RESPONDER always delete ph2handle, keep silent.  RESPONDER doesn't
+ 	 * manage IPsec SA, so delete the list */
++	iph2->status = PHASE2ST_EXPIRED;
+ 	unbindph12(iph2);
+ 	remph2(iph2);
+ 	delph2(iph2);
+@@ -1739,8 +1755,17 @@
+ 	 *    2. its state is equal to PHASE2ST_ESTABLISHED, then racoon
+ 	 *       has to prcesss such a acquire message because racoon may
+ 	 *       lost the expire message.
++	 *
++	 * When in responder role, an spid doesn't get added to
++	 * the handler since responder didn't receive acquire.
++	 * Thus there is the case that a negotiation can be occurring
++	 * and responder receives acquire for same policy. So to prevent
++	 * another identical negotiation, also check by address.
+ 	 */
+ 	iph2[0] = getph2byid(src, dst, xpl->sadb_x_policy_id);
++	if (iph2[0] == NULL)
++	  iph2[0] = getph2bysaddr(src, dst);
++
+ 	if (iph2[0] != NULL) {
+ 		if (iph2[0]->status < PHASE2ST_ESTABLISHED) {
+ 			plog(LLV_DEBUG, LOCATION, NULL,

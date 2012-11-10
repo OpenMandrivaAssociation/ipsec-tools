@@ -1,0 +1,57 @@
+diff -NarU5 ipsec-tools-0.7.0-cvs070822.orig/src/racoon/isakmp_unity.c ipsec-tools-0.7.0-cvs070822/src/racoon/isakmp_unity.c
+--- ipsec-tools-0.7.0-cvs070822.orig/src/racoon/isakmp_unity.c	2006-10-09 02:17:20.000000000 -0400
++++ ipsec-tools-0.7.0-cvs070822/src/racoon/isakmp_unity.c	2007-08-22 13:07:29.000000000 -0400
+@@ -303,36 +303,45 @@
+ int  splitnet_list_add(list, network, count)
+ 	struct unity_netentry ** list;
+ 	struct unity_network * network;
+ 	int *count;
+ {
+-	struct unity_netentry * newentry;
++	struct unity_netentry * nentry;
++
++	/*
++	 * search for network in current list
++	 * to avoid adding duplicates
++	 */
++	for (nentry = *list; nentry != NULL; nentry = nentry->next)
++		if (memcmp(&nentry->network, network,
++			   sizeof(struct unity_network)) == 0)
++			return 0;	/* it's a dupe */
+ 
+ 	/*
+ 	 * allocate new netentry and copy
+-         * new splitnet network data
++	 * new splitnet network data
+ 	 */
+-	newentry = (struct unity_netentry *)
++	nentry = (struct unity_netentry *)
+ 		racoon_malloc(sizeof(struct unity_netentry));
+-	if (newentry == NULL)
++	if (nentry == NULL)
+ 		return -1;
+ 
+-	memcpy(&newentry->network,network,
++	memcpy(&nentry->network,network,
+ 		sizeof(struct unity_network));
+-	newentry->next = NULL;
++	nentry->next = NULL;
+ 
+ 	/*
+ 	 * locate the last netentry in our
+ 	 * splitnet list and add our entry
+ 	 */
+ 	if (*list == NULL)
+-		*list = newentry;
++		*list = nentry;
+ 	else {
+ 		struct unity_netentry * tmpentry = *list;
+ 		while (tmpentry->next != NULL)
+ 			tmpentry = tmpentry->next;
+-		tmpentry->next = newentry;
++		tmpentry->next = nentry;
+ 	}
+ 
+ 	(*count)++;
+ 
+ 	return 0;

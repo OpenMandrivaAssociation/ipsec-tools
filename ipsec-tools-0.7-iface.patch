@@ -1,0 +1,28 @@
+diff -NarU5 ipsec-tools-0.7.0-cvs070822.orig/src/racoon/isakmp.c ipsec-tools-0.7.0-cvs070822/src/racoon/isakmp.c
+--- ipsec-tools-0.7.0-cvs070822.orig/src/racoon/isakmp.c	2007-07-18 08:07:51.000000000 -0400
++++ ipsec-tools-0.7.0-cvs070822/src/racoon/isakmp.c	2007-08-22 13:04:33.000000000 -0400
+@@ -1722,10 +1722,24 @@
+ 			    strerror(errno));
+ 			return -1;
+ 		}
+ #endif
+ 
++		if (setsockopt(p->sock, SOL_SOCKET,
++#ifdef __linux__
++					 SO_REUSEADDR,
++#else
++					 SO_REUSEPORT,
++#endif
++					 (void *)&yes, sizeof(yes)) < 0) {
++			plog(LLV_ERROR, LOCATION, NULL,
++				"failed to set REUSE flag on %s (%s).\n",
++				saddr2str(p->addr), strerror(errno));
++			close(p->sock);
++			goto err_and_next;
++		}
++
+ 		if (setsockopt_bypass(p->sock, p->addr->sa_family) < 0)
+ 			goto err_and_next;
+ 
+ 		if (bind(p->sock, p->addr, sysdep_sa_len(p->addr)) < 0) {
+ 			plog(LLV_ERROR, LOCATION, p->addr,

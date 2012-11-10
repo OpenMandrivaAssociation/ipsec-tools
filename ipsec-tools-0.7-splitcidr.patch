@@ -1,0 +1,139 @@
+diff -NarU5 ipsec-tools-0.7-cvs071018.orig/src/racoon/isakmp_cfg.c ipsec-tools-0.7-cvs071018/src/racoon/isakmp_cfg.c
+--- ipsec-tools-0.7-cvs071018.orig/src/racoon/isakmp_cfg.c	2007-06-07 16:04:26.000000000 -0400
++++ ipsec-tools-0.7-cvs071018/src/racoon/isakmp_cfg.c	2007-10-18 16:33:07.000000000 -0400
+@@ -1875,10 +1875,11 @@
+ 	int *envc;
+ {
+ 	char addrstr[IP_MAX];
+ 	char addrlist[IP_MAX * MAXNS + MAXNS];
+ 	char *splitlist = addrlist;
++	char *splitlist_cidr;
+ 	char defdom[MAXPATHLEN + 1];
+ 	int cidr, tmp;
+ 	char cidrstr[4];
+ 	int i, p;
+ 	int test;
+@@ -2015,37 +2016,61 @@
+ 		    "Cannot set DEFAULT_DOMAIN\n");
+ 		return -1;
+ 	}
+ 
+ 	/* Split networks */
+-	if (iph1->mode_cfg->flags & ISAKMP_CFG_GOT_SPLIT_INCLUDE)
+-		splitlist = splitnet_list_2str(iph1->mode_cfg->split_include);
+-	else {
++	if (iph1->mode_cfg->flags & ISAKMP_CFG_GOT_SPLIT_INCLUDE) {
++		splitlist = 
++		    splitnet_list_2str(iph1->mode_cfg->split_include, 0);
++		splitlist_cidr = 
++		    splitnet_list_2str(iph1->mode_cfg->split_include, 1);
++	} else {
+ 		splitlist = addrlist;
++		splitlist_cidr = addrlist;
+ 		addrlist[0] = '\0';
+ 	}
+ 
+ 	if (script_env_append(envp, envc, "SPLIT_INCLUDE", splitlist) != 0) {
+ 		plog(LLV_ERROR, LOCATION, NULL, "Cannot set SPLIT_INCLUDE\n");
+ 		return -1;
+ 	}
++	if (script_env_append(envp, envc, 
++	    "SPLIT_INCLUDE_CIDR", splitlist_cidr) != 0) {
++		plog(LLV_ERROR, LOCATION, NULL,
++		     "Cannot set SPLIT_INCLUDE_CIDR\n");
++		return -1;
++	}
+ 	if (splitlist != addrlist)
+ 		racoon_free(splitlist);
++	if (splitlist_cidr != addrlist)
++		racoon_free(splitlist_cidr);
+ 
+-	if (iph1->mode_cfg->flags & ISAKMP_CFG_GOT_SPLIT_LOCAL)
+-		splitlist = splitnet_list_2str(iph1->mode_cfg->split_local);
+-	else {
++	if (iph1->mode_cfg->flags & ISAKMP_CFG_GOT_SPLIT_LOCAL) {
++		splitlist =
++		    splitnet_list_2str(iph1->mode_cfg->split_local, 0);
++		splitlist_cidr =
++		    splitnet_list_2str(iph1->mode_cfg->split_local, 1);
++	} else {
+ 		splitlist = addrlist;
++		splitlist_cidr = addrlist;
+ 		addrlist[0] = '\0';
+ 	}
+ 
+ 	if (script_env_append(envp, envc, "SPLIT_LOCAL", splitlist) != 0) {
+ 		plog(LLV_ERROR, LOCATION, NULL, "Cannot set SPLIT_LOCAL\n");
+ 		return -1;
+ 	}
++	if (script_env_append(envp, envc,
++	    "SPLIT_LOCAL_CIDR", splitlist_cidr) != 0) {
++		plog(LLV_ERROR, LOCATION, NULL,
++		     "Cannot set SPLIT_LOCAL_CIDR\n");
++		return -1;
++	}
+ 	if (splitlist != addrlist)
+ 		racoon_free(splitlist);
++	if (splitlist_cidr != addrlist)
++		racoon_free(splitlist_cidr);
+ 	
+ 	return 0;
+ }
+ 
+ int
+diff -NarU5 ipsec-tools-0.7-cvs071018.orig/src/racoon/isakmp_unity.c ipsec-tools-0.7-cvs071018/src/racoon/isakmp_unity.c
+--- ipsec-tools-0.7-cvs071018.orig/src/racoon/isakmp_unity.c	2007-09-19 15:20:25.000000000 -0400
++++ ipsec-tools-0.7-cvs071018/src/racoon/isakmp_unity.c	2007-10-18 18:11:19.000000000 -0400
+@@ -361,12 +361,13 @@
+ 		netentry = netentry->next;
+ 		racoon_free(delentry);
+ 	}
+ }
+ 
+-char * splitnet_list_2str(list)
++char * splitnet_list_2str(list, do_cidr)
+ 	struct unity_netentry * list;
++	int do_cidr;
+ {
+ 	struct unity_netentry * netentry;
+ 	char tmp1[40];
+ 	char tmp2[40];
+ 	char * str;
+@@ -396,12 +397,21 @@
+ 	netentry = list;
+ 	while (netentry != NULL) {
+ 
+ 		inet_ntop(AF_INET, &netentry->network.addr4, tmp1, 40);
+ 		inet_ntop(AF_INET, &netentry->network.mask4, tmp2, 40);
+-
+-		len += sprintf(str+len, "%s/%s ", tmp1, tmp2);
++		if (do_cidr) {
++			uint32_t tmp3;
++			int cidrmask;
++
++			tmp3 = ntohl(netentry->network.mask4.s_addr);
++			for (cidrmask = 0; tmp3 != 0; cidrmask++)
++				tmp3 <<= 1;
++			len += sprintf(str+len, "%s/%d ", tmp1, cidrmask);
++		} else {
++			len += sprintf(str+len, "%s/%s ", tmp1, tmp2);
++		}
+ 
+ 		netentry = netentry->next;
+ 	}
+ 
+ 	str[len-1]=0;
+diff -NarU5 ipsec-tools-0.7-cvs071018.orig/src/racoon/isakmp_unity.h ipsec-tools-0.7-cvs071018/src/racoon/isakmp_unity.h
+--- ipsec-tools-0.7-cvs071018.orig/src/racoon/isakmp_unity.h	2006-09-09 12:22:09.000000000 -0400
++++ ipsec-tools-0.7-cvs071018/src/racoon/isakmp_unity.h	2007-10-18 14:31:34.000000000 -0400
+@@ -64,9 +64,9 @@
+ 	struct unity_netentry   *next;
+ };
+ 
+ int	splitnet_list_add(struct unity_netentry **, struct unity_network *, int *);
+ void	splitnet_list_free(struct unity_netentry *, int *);
+-char *	splitnet_list_2str(struct unity_netentry *);
++char *	splitnet_list_2str(struct unity_netentry *, int);
+ 
+ vchar_t *isakmp_unity_req(struct ph1handle *, struct isakmp_data *);
+ void isakmp_unity_reply(struct ph1handle *, struct isakmp_data *);
