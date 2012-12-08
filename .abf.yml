@@ -1,7 +1,2 @@
 sources:
-  "ipsec-setkey-initscript:"	57006ae6b0c462222d504f966ebfb0c3d31cf1d5
-  "ipsec-tools-0.7.3.tar.bz2:"	19dc160643547a0bfabf0fe0ad1a181d3c28f410
-  "psk.txt:"	83bfdaac8e599291136570a4ee3f11e45e2b2734
-  "racoon.conf:"	38fabca4c6ab4a7d6374b88245912a3bbeb3cc97
-  "racoon-initscript:"	7deee42584050ad3831c44c99c1455f8ffad840c
-  "racoon.sysconfig:"	3ec3a8a2866e61c55076f39e3bcca4c3cd083a90
+  "ipsec-tools-0.7.3.tar.bz2": 19dc160643547a0bfabf0fe0ad1a181d3c28f410

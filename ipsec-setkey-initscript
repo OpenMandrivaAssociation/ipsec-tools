@@ -1,0 +1,124 @@
+#!/bin/sh
+#
+# ipsec-setkey         This script set and unset ipsec rules
+#
+# chkconfig: 345 8 91
+# description: This script set and unset ipsec rules at statup time.
+#
+# config: /etc/ipsec.conf
+
+### BEGIN INIT INFO
+# Provides: ipsec-setkey
+# Required-Start: $network
+# Requires-Stop: $network
+# Default-Start: 3 4 5
+# Short-Description: Deal with ipsec rules
+# Description: setkey adds, updates, dumps, or flushes Security Association Database
+#              (SAD) entries as well as Security Policy Database (SPD) entries in the
+#              kernel.
+### END INIT INFO
+
+. /etc/init.d/functions
+
+. /etc/sysconfig/network
+
+IPSEC_CONFIG="/etc/ipsec.conf"
+
+if [ ! -f $IPSEC_CONFIG ]; then
+    exit 0
+fi
+
+function ipsec_start() {
+    gprintf "Loading %s modules:" "ipsec"
+    err=0
+    modprobe esp4 2>&1 >/dev/null || err=1
+    modprobe ah4 2>&1 > /dev/null || err=1
+    modprobe ipcomp 2>&1 > /dev/null || err=1
+    if [ "$NETWORKING_IPV6" = "yes" ]; then
+	    modprobe esp6 2>&1 > /dev/null || err=1
+	    modprobe ah6 2>&1 > /dev/null || err=1
+	    modprobe ipcomp6 2>&1 > /dev/null || err=1
+    fi
+    [ $err = 0 ] && success || failure
+    echo
+    gprintf "Starting %s:" "ipsec-setkey"
+    /sbin/setkey -f $IPSEC_CONFIG
+    RETVAL=$?
+    if [ "$RETVAL" -eq "0" ]; then
+	    touch /var/lock/subsys/ipsec-setkey
+	    success
+    else
+	    failure
+    fi
+    echo
+    return $[$RETVAL|$err]
+}
+
+function ipsec_stop() {
+    gprintf "Stopping %s:" "ipsec-setkey"
+    err=0
+    /sbin/setkey -F || err=1
+    /sbin/setkey -FP || err=1
+    if [ "$err" -eq "0" ]; then
+	    if [ -f /var/lock/subsys/ipsec-setkey ]; then
+		    rm -f /var/lock/subsys/ipsec-setkey
+		    success
+	    else
+		    failure
+	    fi
+    else
+	    failure
+    fi
+    echo
+    return $err
+}
+
+function ipsec_status() {
+    # quite ugly, but ... well 
+    /sbin/setkey -D
+    /sbin/setkey -DP
+    if [ -f /var/lock/subsys/ipsec-setkey ]; then
+	gprintf "%s is active\n"  "Ipsec-setkey"
+    else
+	gprintf "%s is not active\n" "Ipsec-setkey"
+    fi
+    return 0
+}
+
+case "$1" in
+    start)
+	ipsec_start
+	RETVAL=$?
+	;;
+    stop)
+	ipsec_stop
+	RETVAL=$?
+	;;
+    restart|reload)
+	ipsec_stop
+	ipsec_start
+	RETVAL1=$?
+	# if we have modified some rules, racoon must be restarted
+	service racoon condrestart
+	RETVAL2=$?
+	RETVAL=$[$RETVAL1|$RETVAL2]
+	;;
+    condrestart)
+	if [ -f /var/lock/subsys/ipsec-setkey ]; then
+	    ipsec_stop
+	    ipsec_start
+	    RETVAL=$?
+	fi
+	;;
+    status)
+	ipsec_status
+	RETVAL=$?
+	;;
+    *)
+	gprintf "Usage: %s:\n" "$(basename $0) {start|stop|restart|status}"
+	RETVAL=1
+	;;
+esac
+
+exit $RETVAL
+

@@ -1,0 +1,6 @@
+# Configuration file for the racoon init script
+
+# Add here any extra options you might want to pass to the
+# racoon daemon. Please consult the racoon(8) manpage before
+# changing this
+RACOON_EXTRA_OPTIONS=""

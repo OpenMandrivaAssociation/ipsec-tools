@@ -1,0 +1,83 @@
+#!/bin/sh
+#
+# racoon:      This script start/stop the racoon deamon
+#
+# chkconfig: 345 11 89
+# description: This script start/stop the racoon deamon for ipsec
+# processname: racoon
+# config: /etc/racoon/racoon.conf
+
+### BEGIN INIT INFO
+# Provides: racoon
+# Required-Start: $network
+# Requires-Stop: $network
+# Default-Start: 3 4 5
+# Short-Description: The racoon daemon
+# Description: racoon uses the IKE (ISAKMP/Oakley) key management protocol to
+#              establish security associations with other hosts.
+### END INIT INFO
+
+
+. /etc/init.d/functions
+
+RACOON_CONFIG="/etc/racoon/racoon.conf"
+
+if [ ! -f $RACOON_CONFIG ]; then
+    exit 0
+fi
+
+if [ -f /etc/sysconfig/racoon ]; then
+	. /etc/sysconfig/racoon
+fi
+
+RETVAL=0
+
+function racoon_start() {
+    gprintf "Starting %s:" "racoon"
+    daemon racoon $RACOON_EXTRA_OPTIONS
+    RETVAL=$?
+    [ $RETVAL -eq 0 ] && touch /var/lock/subsys/racoon 
+    echo
+    return $RETVAL
+}
+
+function racoon_stop() {
+    gprintf "Stopping %s:" "racoon"
+    killproc racoon
+    RETVAL=$?
+    [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/racoon
+    echo
+    return $RETVAL
+}
+
+case "$1" in 
+    start)
+	racoon_start
+	RETVAL=$?
+	;;
+    stop)
+	racoon_stop
+	RETVAL=$?
+	;;
+    status)
+	status racoon
+	RETVAL=$?
+	;;
+    restart)
+	racoon_stop
+	racoon_start
+	RETVAL=$?
+	;;
+    condrestart)
+	if [ -f /var/lock/subsys/racoon ]; then
+	    racoon_stop
+	    racoon_start
+	    RETVAL=$?
+	fi
+	;;
+    *)
+	gprintf "Usage: %s {start|stop|status|restart|condrestart}\n" "$0"
+	RETVAL=1
+esac
+
+exit $RETVAL
