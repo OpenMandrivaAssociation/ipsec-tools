@@ -19,6 +19,7 @@ Patch0: ipsec-tools-0.6.2b3-manfix.patch
 Patch1: ipsec-tools-0.5.2-includes.patch
 Patch2: ipsec-tools-0.7.3-install.patch
 Patch3: ipsec-tools-0.7.3-link.patch
+Patch4: ipsec-tools-automake-1.13.patch
 # Fedora patches
 Patch102: ipsec-tools-0.7.3-build.patch
 Patch103: ipsec-tools-0.7-acquires.patch
@@ -85,6 +86,7 @@ These are development headers for libipsec
 %patch1 -p1 -b .includes
 %patch2 -p1 -b .install
 %patch3 -p0 -b .link
+%patch4 -p1 -b .am113~
 %patch102 -p1 -b .build
 %patch103 -p1 -b .acquires
 %patch104 -p1 -b .loopback
