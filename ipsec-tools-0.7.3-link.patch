@@ -1,5 +1,5 @@
---- src/racoon/Makefile.am.link	2010-04-28 05:56:52.000000000 +0000
-+++ src/racoon/Makefile.am	2010-04-28 06:04:37.000000000 +0000
+--- ./src/racoon/Makefile.am.link	2010-04-28 05:56:52.000000000 +0000
++++ ./src/racoon/Makefile.am	2010-04-28 06:04:37.000000000 +0000
 @@ -49,6 +49,7 @@
  racoonctl_LDADD = libracoon.la ../libipsec/libipsec.la 
  
@@ -8,8 +8,8 @@
  
  plainrsa_gen_SOURCES = plainrsa-gen.c plog.c \
  	crypto_openssl.c logger.c 
---- src/racoon/kmpstat.c.link	2010-04-28 06:11:19.000000000 +0000
-+++ src/racoon/kmpstat.c	2010-04-28 06:12:03.000000000 +0000
+--- ./src/racoon/kmpstat.c.link	2010-04-28 06:11:19.000000000 +0000
++++ ./src/racoon/kmpstat.c	2010-04-28 06:12:03.000000000 +0000
 @@ -89,6 +89,7 @@
  #include "admin_var.h"
  #include "ipsec_doi.h"
