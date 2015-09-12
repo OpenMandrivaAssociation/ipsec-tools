@@ -5,7 +5,7 @@
 
 Name:		ipsec-tools
 Version:	0.7.3
-Release:	17
+Release:	18
 Summary:	Tools for configuring and using IPSEC
 License:	BSD
 Group:		Networking/Other
