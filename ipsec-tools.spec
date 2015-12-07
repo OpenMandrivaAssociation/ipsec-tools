@@ -3,6 +3,8 @@
 %define libracoon %mklibname racoon %{major}
 %define devname %mklibname -d ipsec
 
+%define _disable_rebuild_configure 1
+
 Name:		ipsec-tools
 Version:	0.7.3
 Release:	18
