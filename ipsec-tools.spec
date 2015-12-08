@@ -102,7 +102,8 @@ sed -i 's|-Werror||g' configure*
 	--enable-natt \
 	--with-libpam \
 	--enable-security-context=no \
-	--disable-audit
+	--disable-audit \
+	--with-flexlib=-lfl
 
 make
 
