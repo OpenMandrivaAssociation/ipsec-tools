@@ -1,6 +1,6 @@
-diff -up ipsec-tools-0.7.3/configure.ac.build ipsec-tools-0.7.3/configure.ac
---- ipsec-tools-0.7.3/configure.ac.build	2010-12-07 18:36:22.000000000 +0100
-+++ ipsec-tools-0.7.3/configure.ac	2011-02-10 10:26:24.000000000 +0100
+diff -Nurp ipsec-tools-0.8.0/configure.ac ipsec-tools-0.8.0-build/configure.ac
+--- ipsec-tools-0.8.0/configure.ac	2011-03-18 15:25:12.000000000 +0200
++++ ipsec-tools-0.8.0-build/configure.ac	2012-03-06 12:15:41.415725649 +0200
 @@ -315,7 +315,7 @@ if test "$libiconv_dir" != "no"; then
  			AC_MSG_ERROR([ICONV libs or includes not found. Aborting.])
  	  	fi

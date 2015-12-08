@@ -1,2 +1,4 @@
+removed_sources:
+  ipsec-tools-0.7.3.tar.bz2: 19dc160643547a0bfabf0fe0ad1a181d3c28f410
 sources:
-  "ipsec-tools-0.7.3.tar.bz2": 19dc160643547a0bfabf0fe0ad1a181d3c28f410
+  ipsec-tools-0.8.2.tar.gz: f342ec3e0d5d0eb505f06f6772b31100cacac8bf

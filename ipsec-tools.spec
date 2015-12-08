@@ -6,34 +6,27 @@
 %define _disable_rebuild_configure 1
 
 Name:		ipsec-tools
-Version:	0.7.3
-Release:	18
+Version:	0.8.2
+Release:	1
 Summary:	Tools for configuring and using IPSEC
 License:	BSD
 Group:		Networking/Other
 Url:		http://ipsec-tools.sourceforge.net/
-Source0:	http://prdownloads.sourceforge.net/ipsec-tools/%{name}-%{version}.tar.bz2
+Source0:	http://prdownloads.sourceforge.net/ipsec-tools/%{name}-%{version}.tar.gz
 Source3:	racoon.conf
 Source4:	psk.txt
 Source6:	ipsec-setkey-initscript
 Source7:	racoon-initscript
 Source8:	racoon.sysconfig
-Patch0:		ipsec-tools-0.6.2b3-manfix.patch
-Patch1:		ipsec-tools-0.5.2-includes.patch
-Patch2:		ipsec-tools-0.7.3-install.patch
-Patch3:		ipsec-tools-0.7.3-link.patch
-Patch4:		ipsec-tools-automake-1.13.patch
+Patch0:		ipsec-tools-0.8.0-manfix.patch
+Patch1:		ipsec-tools-0.8.1-includes.patch
+Patch3:		ipsec-tools-0.8.0-link.patch
 # Fedora patches
-Patch102:	ipsec-tools-0.7.3-build.patch
-Patch103:	ipsec-tools-0.7-acquires.patch
-Patch104:	ipsec-tools-0.7.1-loopback.patch
+Patch102:	ipsec-tools-0.8.0-build.patch
+Patch103:	ipsec-tools-0.8.0-acquires.patch
+Patch104:	ipsec-tools-0.8.0-loopback.patch
 # the following patches were also submitted upstream:
-Patch105:	ipsec-tools-0.7-iface.patch
-Patch106:	ipsec-tools-0.7-dupsplit.patch
-Patch109:	ipsec-tools-0.7-splitcidr.patch
-Patch110:	ipsec-tools-0.7.2-natt-linux.patch
-Patch111:	ipsec-tools-0.7.1-pie.patch
-Patch113:	ipsec-tools-0.7.1-dpd-fixes.patch
+Patch111:	ipsec-tools-0.8.0-pie.patch
 
 BuildRequires:	bison
 BuildRequires:	flex-devel

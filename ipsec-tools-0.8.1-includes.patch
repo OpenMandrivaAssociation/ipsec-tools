@@ -1,0 +1,16 @@
+diff -Nurp ipsec-tools-0.8.1/src/racoon/missing/crypto/sha2/sha2.c ipsec-tools-0.8.1.p1/src/racoon/missing/crypto/sha2/sha2.c
+--- ipsec-tools-0.8.1/src/racoon/missing/crypto/sha2/sha2.c	2012-12-24 10:48:08.000000000 +0200
++++ ipsec-tools-0.8.1.p1/src/racoon/missing/crypto/sha2/sha2.c	2013-10-13 20:24:51.711232574 +0300
+@@ -52,8 +52,12 @@
+ 
+ #include <err.h>
+ #include <string.h>
++#ifndef bcopy
+ #define bcopy(a, b, c) memcpy((b), (a), (c))
++#endif
++#ifndef bzero
+ #define bzero(a, b) memset((a), 0, (b))
++#endif
+ #define panic(a) err(1, (a))
+ 
+ #define HAVE_EVP_097

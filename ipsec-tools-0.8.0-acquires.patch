@@ -1,6 +1,7 @@
---- ipsec-tools-0.7/src/racoon/handler.h.acquires	2007-08-28 22:18:35.000000000 -0500
-+++ ipsec-tools-0.7/src/racoon/handler.h	2007-08-28 22:19:57.000000000 -0500
-@@ -284,6 +284,8 @@
+diff -Nurp ipsec-tools-0.8.0-p3/src/racoon/handler.h ipsec-tools-0.8.0-p103/src/racoon/handler.h
+--- ipsec-tools-0.8.0-p3/src/racoon/handler.h	2010-11-17 12:40:41.000000000 +0200
++++ ipsec-tools-0.8.0-p103/src/racoon/handler.h	2012-03-06 12:09:55.085380720 +0200
+@@ -316,6 +316,8 @@ struct ph2handle {
  
  	u_int8_t flags;			/* Flags for phase 2 */
  	u_int32_t msgid;		/* msgid for phase 2 */
@@ -9,28 +10,29 @@
  
  	struct sainfo *sainfo;		/* place holder of sainfo */
  	struct saprop *proposal;	/* SA(s) proposal. */
---- ipsec-tools-0.7/src/racoon/pfkey.c.acquires	2007-08-01 06:52:21.000000000 -0500
-+++ ipsec-tools-0.7/src/racoon/pfkey.c	2007-08-28 22:08:22.000000000 -0500
-@@ -1265,7 +1265,9 @@
- 	SCHED_KILL(iph2->sce);
- 	
+diff -Nurp ipsec-tools-0.8.0-p3/src/racoon/pfkey.c ipsec-tools-0.8.0-p103/src/racoon/pfkey.c
+--- ipsec-tools-0.8.0-p3/src/racoon/pfkey.c	2011-03-15 15:20:14.000000000 +0200
++++ ipsec-tools-0.8.0-p103/src/racoon/pfkey.c	2012-03-06 12:09:55.086380830 +0200
+@@ -1347,7 +1347,9 @@ pk_recvupdate(mhp)
+ 	sched_cancel(&iph2->sce);
+ 
  	/* update status */
 -	iph2->status = PHASE2ST_ESTABLISHED;
 +	/* Do this in pk_recvadd
 +	 * iph2->status = PHASE2ST_ESTABLISHED;
 +	 */
+ 	evt_phase2(iph2, EVT_PHASE2_UP, NULL);
  
  #ifdef ENABLE_STATS
- 	gettimeofday(&iph2->end, NULL);
-@@ -1311,6 +1313,7 @@
+@@ -1379,6 +1381,7 @@ pk_sendadd(iph2)
+ {
  	struct saproto *pr;
- 	int proxy = 0;
  	struct pfkey_send_sa_args sa_args;
 +	u_int32_t sa_sent = 0;
  
  	/* sanity check */
  	if (iph2->approval == NULL) {
-@@ -1427,6 +1430,9 @@
+@@ -1498,6 +1501,9 @@ pk_sendadd(iph2)
  			return -1;
  		}
  
@@ -40,15 +42,15 @@
  		if (!lcconf->pathinfo[LC_PATHTYPE_BACKUPSA])
  			continue;
  
-@@ -1447,6 +1453,7 @@
+@@ -1518,6 +1524,7 @@ pk_sendadd(iph2)
  			sadbsecas2str(sa_args.src, sa_args.dst,
  			sa_args.satype, sa_args.spi, sa_args.mode));
  	}
 +	iph2->sa_count = sa_sent;
+ 	racoon_free(sa_args.src);
+ 	racoon_free(sa_args.dst);
  	return 0;
- }
- 
-@@ -1502,10 +1509,20 @@
+@@ -1576,10 +1583,20 @@ pk_recvadd(mhp)
  	}
  
  	/*
@@ -70,25 +72,16 @@
 +
  	plog(LLV_INFO, LOCATION, NULL,
  		"IPsec-SA established: %s\n",
- 		sadbsecas2str(iph2->src, iph2->dst,
-@@ -1589,8 +1606,6 @@
- 	/* turn off the timer for calling isakmp_ph2expire() */ 
- 	SCHED_KILL(iph2->sce);
- 
--	iph2->status = PHASE2ST_EXPIRED;
--
- 	/* INITIATOR, begin phase 2 exchange. */
- 	/* allocate buffer for status management of pfkey message */
- 	if (iph2->side == INITIATOR) {
-@@ -1618,6 +1633,7 @@
- 	/* If not received SADB_EXPIRE, INITIATOR delete ph2handle. */
- 	/* RESPONDER always delete ph2handle, keep silent.  RESPONDER doesn't
- 	 * manage IPsec SA, so delete the list */
-+	iph2->status = PHASE2ST_EXPIRED;
- 	unbindph12(iph2);
- 	remph2(iph2);
- 	delph2(iph2);
-@@ -1739,8 +1755,17 @@
+ 		sadbsecas2str(src, dst,
+@@ -1690,6 +1707,7 @@ pk_recvexpire(mhp)
+ 			plog(LLV_ERROR, LOCATION, iph2->dst,
+ 				"failed to begin ipsec sa "
+ 				"re-negotication.\n");
++			iph2->status = PHASE2ST_EXPIRED;
+ 			remph2(iph2);
+ 			delph2(iph2);
+ 			return -1;
+@@ -1855,8 +1873,17 @@ pk_recvacquire(mhp)
  	 *    2. its state is equal to PHASE2ST_ESTABLISHED, then racoon
  	 *       has to prcesss such a acquire message because racoon may
  	 *       lost the expire message.
@@ -99,10 +92,10 @@
 +	 * and responder receives acquire for same policy. So to prevent
 +	 * another identical negotiation, also check by address.
  	 */
- 	iph2[0] = getph2byid(src, dst, xpl->sadb_x_policy_id);
-+	if (iph2[0] == NULL)
-+	  iph2[0] = getph2bysaddr(src, dst);
+ 	iph2 = getph2byid(src, dst, xpl->sadb_x_policy_id);
++	if (iph2 == NULL)
++	  iph2 = getph2bysaddr(src, dst);
 +
- 	if (iph2[0] != NULL) {
- 		if (iph2[0]->status < PHASE2ST_ESTABLISHED) {
+ 	if (iph2 != NULL) {
+ 		if (iph2->status < PHASE2ST_ESTABLISHED) {
  			plog(LLV_DEBUG, LOCATION, NULL,

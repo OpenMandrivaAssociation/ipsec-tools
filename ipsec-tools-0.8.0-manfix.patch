@@ -1,0 +1,47 @@
+diff -Nurp ipsec-tools-0.8.0/src/racoon/racoon.8 ipsec-tools-0.8.0-p0/src/racoon/racoon.8
+--- ipsec-tools-0.8.0/src/racoon/racoon.8	2009-01-24 12:42:31.000000000 +0200
++++ ipsec-tools-0.8.0-p0/src/racoon/racoon.8	2012-03-06 10:30:10.485471925 +0200
+@@ -132,8 +132,8 @@ at
+ The command exits with 0 on success, and non-zero on errors.
+ .\"
+ .Sh FILES
+-.Bl -tag -width /etc/racoon.conf -compact
+-.It Pa /etc/racoon.conf
++.Bl -tag -width /etc/racoon/racoon.conf -compact
++.It Pa /etc/racoon/racoon.conf
+ default configuration file.
+ .El
+ .\"
+diff -Nurp ipsec-tools-0.8.0/src/racoon/racoon.conf.5 ipsec-tools-0.8.0-p0/src/racoon/racoon.conf.5
+--- ipsec-tools-0.8.0/src/racoon/racoon.conf.5	2010-06-22 23:51:04.000000000 +0300
++++ ipsec-tools-0.8.0-p0/src/racoon/racoon.conf.5	2012-03-06 10:30:10.486471984 +0200
+@@ -318,7 +318,7 @@ and
+ values specify the socket path, owner, and group.
+ They must be quoted.
+ The defaults are
+-.Pa /var/racoon/racoon.sock ,
++.Pa /var/lib/racoon/racoon.sock ,
+ UID 0, and GID 0.
+ .Ar mode
+ is the access mode in octal.
+@@ -1467,7 +1467,7 @@ and must not be accessible by others.
+ .Sh EXAMPLES
+ The following shows how the remote directive should be configured.
+ .Bd -literal -offset
+-path pre_shared_key "/usr/local/v6/etc/psk.txt" ;
++path pre_shared_key "/etc/racoon/psk.txt" ;
+ remote anonymous
+ {
+ 	exchange_mode aggressive,main,base;
+diff -Nurp ipsec-tools-0.8.0/src/racoon/racoonctl.8 ipsec-tools-0.8.0-p0/src/racoon/racoonctl.8
+--- ipsec-tools-0.8.0/src/racoon/racoonctl.8	2009-03-12 16:01:09.000000000 +0200
++++ ipsec-tools-0.8.0-p0/src/racoon/racoonctl.8	2012-03-06 10:30:10.485471925 +0200
+@@ -208,7 +208,7 @@ The command should exit with 0 on succes
+ .\"
+ .Sh FILES
+ .Bl -tag -width 30n -compact
+-.It Pa /var/racoon/racoon.sock No or
++.It Pa /var/lib/racoon/racoon.sock No or
+ .It Pa /var/run/racoon.sock
+ .Xr racoon 8
+ control socket.
