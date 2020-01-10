@@ -78,7 +78,7 @@ These are development headers for libipsec
 
 %prep
 %setup -q
-%apply_patches
+%autopatch -p1
 sed -i 's|-Werror||g' configure*
 ./bootstrap
 
