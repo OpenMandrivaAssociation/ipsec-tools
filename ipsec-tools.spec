@@ -11,7 +11,7 @@ Release:	3
 Summary:	Tools for configuring and using IPSEC
 License:	BSD
 Group:		Networking/Other
-Url:		http://ipsec-tools.sourceforge.net/
+Url:		https://ipsec-tools.sourceforge.net/
 Source0:	http://prdownloads.sourceforge.net/ipsec-tools/%{name}-%{version}.tar.gz
 Source3:	racoon.conf
 Source4:	psk.txt
