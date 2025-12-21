@@ -28,6 +28,11 @@ Patch104:	ipsec-tools-0.8.0-loopback.patch
 # the following patches were also submitted upstream:
 Patch111:	ipsec-tools-0.8.0-pie.patch
 
+BuildRequires:	autoconf
+BuildRequires:	automake
+BuildRequires:	libtool-base
+BuildRequires:	slibtool
+BuildRequires:	make
 BuildRequires:	bison
 BuildRequires:	flex-devel
 BuildRequires:	krb5-devel
